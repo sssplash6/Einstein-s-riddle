@@ -434,6 +434,7 @@ const state = {
 };
 
 const itemById = new Map();
+const paletteTokens = new Map();
 
 const statusEl = document.getElementById("status");
 const autoToggle = document.getElementById("autoToggle");
@@ -554,6 +555,7 @@ function applyLanguage(lang) {
   buildClues(langData.clues);
   buildPalette(langData.labels);
   updatePlacedLabels(langData.labels);
+  updatePaletteAvailability();
 
   hintKey("tipDefault", false);
   updateChecks();
@@ -576,6 +578,7 @@ function buildClues(clues) {
 
 function buildPalette(labels) {
   itemById.clear();
+  paletteTokens.clear();
   Object.entries(BASE_ITEMS).forEach(([category, items]) => {
     const container = document.getElementById(`tokens-${category}`);
     if (!container) return;
@@ -586,6 +589,7 @@ function buildPalette(labels) {
       const enriched = { ...item, label };
       itemById.set(item.id, { ...enriched, category });
       const token = createTokenElement(enriched, category);
+      paletteTokens.set(item.id, token);
       container.appendChild(token);
     });
   });
@@ -599,6 +603,25 @@ function updatePlacedLabels(labels) {
     if (label) {
       placed.textContent = label;
     }
+  });
+}
+
+function updatePaletteAvailability() {
+  const correctIds = new Set();
+  document.querySelectorAll(".cell").forEach((cell) => {
+    const row = cell.dataset.row;
+    const col = cell.dataset.col;
+    const placed = cell.querySelector(".placed");
+    if (!placed) return;
+    if (SOLUTION[row]?.[col] === placed.dataset.id) {
+      correctIds.add(placed.dataset.id);
+    }
+  });
+
+  paletteTokens.forEach((token, id) => {
+    const hide = correctIds.has(id);
+    token.classList.toggle("token--hidden", hide);
+    token.setAttribute("aria-hidden", hide ? "true" : "false");
   });
 }
 
@@ -801,6 +824,7 @@ function placeItem(item, cell) {
   if (autoToggle.checked) {
     updateChecks();
   }
+  updatePaletteAvailability();
 
   return SOLUTION[row][col] === item.id;
 }
@@ -819,6 +843,7 @@ function clearCell(cell) {
   if (autoToggle.checked) {
     updateChecks();
   }
+  updatePaletteAvailability();
 }
 
 function updateChecks() {
@@ -854,6 +879,7 @@ function updateChecks() {
   } else {
     statusEl.textContent = t("statusProgress", { correct, total: TOTAL_CELLS });
   }
+  updatePaletteAvailability();
 }
 
 function hintMessage(message, warn) {

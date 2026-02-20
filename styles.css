@@ -363,6 +363,10 @@ body {
   opacity: 0.35;
 }
 
+.token--hidden {
+  display: none;
+}
+
 .placed {
   margin: 6px;
   display: inline-flex;
