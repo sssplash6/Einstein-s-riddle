@@ -1,6 +1,7 @@
 const { query, ensureSchema } = require("./_db");
 
 const PENALTY_MS = Number(process.env.MISTAKE_PENALTY_MS || 60000);
+const PENALTY_QUAD_MS = Number(process.env.MISTAKE_PENALTY_QUAD_MS || 10000);
 const DEBUG_ERRORS = process.env.DEBUG_ERRORS === "true";
 
 async function readJson(req) {
@@ -79,7 +80,9 @@ module.exports = async function handler(req, res) {
 
     await ensureSchema();
 
-    const score = Math.round(durationMs + mistakes * PENALTY_MS);
+    const penalty =
+      mistakes * PENALTY_MS + mistakes * mistakes * PENALTY_QUAD_MS;
+    const score = Math.round(durationMs + penalty);
     const pointsBase = Number(process.env.POINTS_BASE || 1000000);
     const points = Math.max(0, pointsBase - score);
 
