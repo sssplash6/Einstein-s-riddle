@@ -182,6 +182,12 @@ body {
   position: relative;
 }
 
+.grid-scroll {
+  overflow-x: auto;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
 .grid::after {
   content: "";
   position: absolute;
@@ -300,6 +306,7 @@ body {
   cursor: grab;
   font-size: 0.95rem;
   user-select: none;
+  touch-action: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -359,6 +366,7 @@ body {
   justify-content: center;
   font-size: 0.95rem;
   animation: dropPop 0.25s ease;
+  touch-action: none;
 }
 
 .drag-ghost {
@@ -626,6 +634,30 @@ body {
 @media (max-width: 640px) {
   .page {
     padding: 24px 16px 32px;
+  }
+
+  .language-card {
+    padding: 20px 20px 24px;
+  }
+
+  .flag {
+    width: 60px;
+    height: 40px;
+    flex: 0 0 60px;
+  }
+
+  .home-btn {
+    top: 12px;
+    right: 12px;
+  }
+
+  .grid-scroll {
+    margin: 0 -6px;
+    padding: 0 6px 8px;
+  }
+
+  .grid {
+    min-width: 520px;
   }
 
   .grid {

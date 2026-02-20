@@ -528,7 +528,13 @@ function handlePointerDown(event) {
 
   ensureAudioContext();
   event.preventDefault();
-  target.setPointerCapture(event.pointerId);
+  try {
+    if (event.pointerId != null && target.setPointerCapture) {
+      target.setPointerCapture(event.pointerId);
+    }
+  } catch (_) {
+    // Ignore pointer capture errors on some mobile browsers.
+  }
 
   const rect = target.getBoundingClientRect();
   const ghost = target.cloneNode(true);
@@ -551,6 +557,7 @@ function handlePointerDown(event) {
 
   window.addEventListener("pointermove", handlePointerMove);
   window.addEventListener("pointerup", handlePointerUp, { once: true });
+  window.addEventListener("pointercancel", handlePointerCancel, { once: true });
 }
 
 function handlePointerMove(event) {
@@ -590,6 +597,18 @@ function handlePointerUp(event) {
     dragging.source.classList.remove("token--dragging");
   }
 
+  clearHover();
+  dragging = null;
+}
+
+function handlePointerCancel() {
+  if (!dragging) return;
+  if (dragging.ghost) {
+    dragging.ghost.remove();
+  }
+  if (dragging.source) {
+    dragging.source.classList.remove("token--dragging");
+  }
   clearHover();
   dragging = null;
 }
