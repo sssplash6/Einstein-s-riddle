@@ -382,6 +382,24 @@ body {
   margin-top: 18px;
 }
 
+.footer {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.footer a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(178, 74, 59, 0.5);
+}
+
+.footer a:hover {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
 .tip {
   border: 2px dashed var(--ink-soft);
   border-radius: 12px;
