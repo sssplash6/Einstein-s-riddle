@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Einstein Riddle - Sketch Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Special+Elite&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="language-overlay is-visible" id="languageOverlay" aria-hidden="false">
+      <div class="language-card">
+        <p class="language-eyebrow" id="languageSubtitle">Choose a language to begin.</p>
+        <h1 class="language-title" id="languageTitle">Einstein's Riddle</h1>
+        <div class="language-options">
+          <button class="lang-option" data-lang="en" aria-label="English">
+            <span class="flag flag--en"></span>
+          </button>
+          <button class="lang-option" data-lang="uz" aria-label="O'zbekcha">
+            <span class="flag flag--uz"></span>
+          </button>
+          <button class="lang-option" data-lang="ru" aria-label="Русский">
+            <span class="flag flag--ru"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button class="home-btn" id="homeBtn" type="button"></button>
+    <main class="page">
+      <header class="hero">
+        <div class="hero-text">
+          <p class="eyebrow" id="heroEyebrow"></p>
+          <h1 id="heroTitle"></h1>
+          <p class="subtitle" id="heroSubtitle"></p>
+        </div>
+        <div class="controls">
+          <div class="status" id="status">0/25 correct</div>
+          <label class="toggle">
+            <input type="checkbox" id="autoToggle" checked />
+            <span id="autoLabel"></span>
+          </label>
+          <button class="btn" id="resetBtn"></button>
+        </div>
+      </header>
+
+      <section class="board">
+        <div class="left-col">
+          <section class="riddle">
+            <h2 id="riddleTitle"></h2>
+            <p id="riddleSubtitle"></p>
+            <ul class="clues" id="clues"></ul>
+          </section>
+
+          <div class="grid" id="grid">
+          <div class="corner"></div>
+          <div class="col-head" data-col-index="1"></div>
+          <div class="col-head" data-col-index="2"></div>
+          <div class="col-head" data-col-index="3"></div>
+          <div class="col-head" data-col-index="4"></div>
+          <div class="col-head" data-col-index="5"></div>
+
+          <div class="row-head" data-row-key="color"></div>
+          <div class="cell" data-row="color" data-col="1"></div>
+          <div class="cell" data-row="color" data-col="2"></div>
+          <div class="cell" data-row="color" data-col="3"></div>
+          <div class="cell" data-row="color" data-col="4"></div>
+          <div class="cell" data-row="color" data-col="5"></div>
+
+          <div class="row-head" data-row-key="nationality"></div>
+          <div class="cell" data-row="nationality" data-col="1"></div>
+          <div class="cell" data-row="nationality" data-col="2"></div>
+          <div class="cell" data-row="nationality" data-col="3"></div>
+          <div class="cell" data-row="nationality" data-col="4"></div>
+          <div class="cell" data-row="nationality" data-col="5"></div>
+
+          <div class="row-head" data-row-key="drink"></div>
+          <div class="cell" data-row="drink" data-col="1"></div>
+          <div class="cell" data-row="drink" data-col="2"></div>
+          <div class="cell" data-row="drink" data-col="3"></div>
+          <div class="cell" data-row="drink" data-col="4"></div>
+          <div class="cell" data-row="drink" data-col="5"></div>
+
+          <div class="row-head" data-row-key="cigarette"></div>
+          <div class="cell" data-row="cigarette" data-col="1"></div>
+          <div class="cell" data-row="cigarette" data-col="2"></div>
+          <div class="cell" data-row="cigarette" data-col="3"></div>
+          <div class="cell" data-row="cigarette" data-col="4"></div>
+          <div class="cell" data-row="cigarette" data-col="5"></div>
+
+          <div class="row-head" data-row-key="pet"></div>
+          <div class="cell" data-row="pet" data-col="1"></div>
+          <div class="cell" data-row="pet" data-col="2"></div>
+          <div class="cell" data-row="pet" data-col="3"></div>
+          <div class="cell" data-row="pet" data-col="4"></div>
+          <div class="cell" data-row="pet" data-col="5"></div>
+        </div>
+        </div>
+
+        <aside class="palette">
+          <div class="palette-header">
+            <h2 id="paletteTitle"></h2>
+            <p id="paletteSubtitle"></p>
+          </div>
+
+          <div class="group">
+            <h3 data-group-key="color"></h3>
+            <div class="tokens" id="tokens-color"></div>
+          </div>
+
+          <div class="group">
+            <h3 data-group-key="nationality"></h3>
+            <div class="tokens" id="tokens-nationality"></div>
+          </div>
+
+          <div class="group">
+            <h3 data-group-key="drink"></h3>
+            <div class="tokens" id="tokens-drink"></div>
+          </div>
+
+          <div class="group">
+            <h3 data-group-key="cigarette"></h3>
+            <div class="tokens" id="tokens-cigarette"></div>
+          </div>
+
+          <div class="group">
+            <h3 data-group-key="pet"></h3>
+            <div class="tokens" id="tokens-pet"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="tips">
+        <div class="tip" id="hint"></div>
+      </section>
+    </main>
+
+    <div class="win-overlay" id="winOverlay" aria-hidden="true">
+      <canvas id="confetti"></canvas>
+      <div class="win-card">
+        <p class="win-eyebrow" id="winEyebrow"></p>
+        <h2 id="winTitle"></h2>
+        <p id="winBody"></p>
+        <button class="btn" id="winClose"></button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
