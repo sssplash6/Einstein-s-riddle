@@ -166,6 +166,7 @@ const LANGUAGES = {
       nameError: "Please enter a name (2+ letters).",
       submitScore: "Submit score",
       submitSuccess: "Rank #{rank} • Top {percentile}%",
+      submitDuplicate: "Score already submitted.",
       submitError: "Could not submit. Check connection.",
       statsBtn: "Show Statistics",
       leaderboardBtn: "Show Leaderboard",
@@ -279,6 +280,7 @@ const LANGUAGES = {
       nameError: "Iltimos, ism kiriting (kamida 2 harf).",
       submitScore: "Natijani yuborish",
       submitSuccess: "O'rin #{rank} • Yuqori {percentile}%",
+      submitDuplicate: "Natija allaqachon yuborilgan.",
       submitError: "Yuborilmadi. Internetni tekshiring.",
       statsBtn: "Statistika",
       leaderboardBtn: "Reyting",
@@ -392,6 +394,7 @@ const LANGUAGES = {
       nameError: "Введите имя (минимум 2 буквы).",
       submitScore: "Отправить результат",
       submitSuccess: "Место #{rank} • Топ {percentile}%",
+      submitDuplicate: "Результат уже отправлен.",
       submitError: "Не удалось отправить.",
       statsBtn: "Статистика",
       leaderboardBtn: "Таблица лидеров",
@@ -484,6 +487,8 @@ let mistakesCount = 0;
 let sessionMistakesFinal = null;
 let lastSubmission = null;
 let hasSubmitted = false;
+let isSubmitting = false;
+let sessionId = null;
 
 function setText(el, text) {
   if (!el) return;
@@ -882,6 +887,13 @@ function apiUrl(path) {
   return `${API_BASE}${path}`;
 }
 
+function generateSessionId() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return `sess_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
 function startNewSession() {
   sessionStart = performance.now();
   sessionDurationMs = 0;
@@ -889,6 +901,13 @@ function startNewSession() {
   sessionMistakesFinal = null;
   lastSubmission = null;
   hasSubmitted = false;
+  isSubmitting = false;
+  sessionId = generateSessionId();
+  try {
+    localStorage.setItem("einstein_session_id", sessionId);
+  } catch (_) {
+    // Ignore storage issues.
+  }
   if (scoreForm) {
     scoreForm.classList.remove("is-submitted");
   }
@@ -935,14 +954,6 @@ function renderStatsPanel() {
 
   if (lastSubmission) {
     lines.push({
-      label: t("statsAvgMistakes"),
-      value: Number(lastSubmission.avgMistakes).toFixed(1),
-    });
-    lines.push({
-      label: t("statsAvgTime"),
-      value: formatDuration(Number(lastSubmission.avgDurationMs)),
-    });
-    lines.push({
       label: t("statsPercentile"),
       value: `${Number(lastSubmission.percentile).toFixed(1)}%`,
     });
@@ -966,6 +977,7 @@ function renderStatsPanel() {
 
 async function submitScore() {
   if (hasSubmitted) return;
+  if (isSubmitting) return;
   const name = playerNameInput?.value.trim();
   if (!name || name.length < 2) {
     if (submitNote) {
@@ -981,7 +993,13 @@ async function submitScore() {
     sessionMistakesFinal = mistakesCount;
   }
 
+  if (!sessionId) {
+    sessionId = generateSessionId();
+  }
+
+  isSubmitting = true;
   const payload = {
+    sessionId,
     name,
     mistakes: getSessionMistakes(),
     durationMs: getSessionDurationMs(),
@@ -995,6 +1013,18 @@ async function submitScore() {
       body: JSON.stringify(payload),
     });
 
+    if (response.status === 409) {
+      if (submitNote) {
+        submitNote.textContent = t("submitDuplicate");
+      }
+      hasSubmitted = true;
+      isSubmitting = false;
+      if (scoreForm) {
+        scoreForm.classList.add("is-submitted");
+      }
+      return;
+    }
+
     if (!response.ok) {
       throw new Error("submit failed");
     }
@@ -1002,6 +1032,7 @@ async function submitScore() {
     const data = await response.json();
     lastSubmission = data;
     hasSubmitted = true;
+    isSubmitting = false;
     if (scoreForm) {
       scoreForm.classList.add("is-submitted");
     }
@@ -1016,6 +1047,7 @@ async function submitScore() {
     if (submitNote) {
       submitNote.textContent = t("submitError");
     }
+    isSubmitting = false;
   }
 }
 

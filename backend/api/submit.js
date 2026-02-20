@@ -50,11 +50,17 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = await readJson(req);
+    const sessionId = String(body.sessionId || "").trim().slice(0, 64);
     const name = String(body.name || "").trim().slice(0, 24);
     const mistakes = Number(body.mistakes);
     const durationMs = Number(body.durationMs);
     const language = String(body.language || "en").slice(0, 8);
 
+    if (!sessionId) {
+      res.statusCode = 400;
+      res.end("Session ID required");
+      return;
+    }
     if (!name || name.length < 2) {
       res.statusCode = 400;
       res.end("Name required");
@@ -74,19 +80,27 @@ module.exports = async function handler(req, res) {
     await ensureSchema();
 
     const score = Math.round(durationMs + mistakes * PENALTY_MS);
+    const pointsBase = Number(process.env.POINTS_BASE || 1000000);
+    const points = Math.max(0, pointsBase - score);
 
     const insert = await query(
-      "INSERT INTO sessions (name, mistakes, duration_ms, score, language) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-      [name, mistakes, Math.round(durationMs), score, language]
+      "INSERT INTO sessions (session_id, name, mistakes, duration_ms, score, language) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (session_id) DO NOTHING RETURNING id",
+      [sessionId, name, mistakes, Math.round(durationMs), points, language]
     );
+
+    if (insert.rowCount === 0) {
+      res.statusCode = 409;
+      res.end("Duplicate session");
+      return;
+    }
 
     const totals = await query(
       "SELECT COUNT(*)::int AS total, AVG(mistakes) AS avg_mistakes, AVG(duration_ms) AS avg_duration_ms FROM sessions"
     );
 
     const better = await query(
-      "SELECT COUNT(*)::int AS better FROM sessions WHERE score < $1",
-      [score]
+      "SELECT COUNT(*)::int AS better FROM sessions WHERE score > $1",
+      [points]
     );
 
     const total = totals.rows[0]?.total || 0;
@@ -99,7 +113,7 @@ module.exports = async function handler(req, res) {
     res.end(
       JSON.stringify({
         id: insert.rows[0].id,
-        score,
+        score: points,
         rank,
         percentile,
         avgMistakes,

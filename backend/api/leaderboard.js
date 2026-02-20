@@ -33,9 +33,9 @@ module.exports = async function handler(req, res) {
         mistakes,
         duration_ms AS "durationMs",
         score,
-        ROW_NUMBER() OVER (ORDER BY score ASC, duration_ms ASC, created_at ASC) AS rank
+        ROW_NUMBER() OVER (ORDER BY score DESC, duration_ms ASC, created_at ASC) AS rank
       FROM sessions
-      ORDER BY score ASC, duration_ms ASC, created_at ASC
+      ORDER BY score DESC, duration_ms ASC, created_at ASC
       LIMIT $1
       `,
       [limit]

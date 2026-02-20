@@ -28,6 +28,7 @@ async function ensureSchema() {
   await query(`
     CREATE TABLE IF NOT EXISTS sessions (
       id SERIAL PRIMARY KEY,
+      session_id TEXT UNIQUE,
       name TEXT NOT NULL,
       mistakes INTEGER NOT NULL,
       duration_ms INTEGER NOT NULL,
@@ -36,6 +37,9 @@ async function ensureSchema() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+
+  await query(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS session_id TEXT;`);
+  await query(`CREATE UNIQUE INDEX IF NOT EXISTS sessions_session_id_key ON sessions(session_id);`);
 }
 
 module.exports = { query, ensureSchema };
