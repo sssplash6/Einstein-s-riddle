@@ -404,6 +404,7 @@ let solvedShown = false;
 let confettiAnimationId = null;
 let confettiPieces = [];
 let currentLang = "en";
+let audioCtx = null;
 
 function setText(el, text) {
   if (!el) return;
@@ -525,6 +526,7 @@ function handlePointerDown(event) {
   const item = itemById.get(target.dataset.id);
   if (!item) return;
 
+  ensureAudioContext();
   event.preventDefault();
   target.setPointerCapture(event.pointerId);
 
@@ -569,9 +571,11 @@ function handlePointerUp(event) {
     animateDrop(dragging.ghost, cell);
     placeItem(dragging.item, cell);
     hintKey("hintNice", false);
+    playSuccess();
   } else {
     dragging.ghost.remove();
     hintKey(cell ? "hintWrongRow" : "hintDropOnGrid", true);
+    playError();
   }
 
   if (dragging.source) {
@@ -748,6 +752,61 @@ function shuffleArray(array) {
   return array;
 }
 
+function ensureAudioContext() {
+  if (audioCtx) {
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume().catch(() => {});
+    }
+    return;
+  }
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  audioCtx = new AudioContext();
+}
+
+function playTone({ freq, duration, type, gain, delay = 0 }) {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime + delay;
+  const osc = audioCtx.createOscillator();
+  const amp = audioCtx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+  amp.gain.setValueAtTime(0.0001, now);
+  amp.gain.linearRampToValueAtTime(gain, now + 0.02);
+  amp.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  osc.connect(amp);
+  amp.connect(audioCtx.destination);
+
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+function vibrate(pattern) {
+  if (navigator.vibrate) {
+    navigator.vibrate(pattern);
+  }
+}
+
+function playSuccess() {
+  playTone({ freq: 560, duration: 0.12, type: "triangle", gain: 0.06 });
+  playTone({ freq: 760, duration: 0.12, type: "triangle", gain: 0.05, delay: 0.12 });
+  vibrate([20]);
+}
+
+function playError() {
+  playTone({ freq: 190, duration: 0.18, type: "sawtooth", gain: 0.06 });
+  vibrate([40, 30, 40]);
+}
+
+function playSolved() {
+  playTone({ freq: 520, duration: 0.12, type: "triangle", gain: 0.06 });
+  playTone({ freq: 720, duration: 0.12, type: "triangle", gain: 0.05, delay: 0.12 });
+  playTone({ freq: 920, duration: 0.12, type: "triangle", gain: 0.04, delay: 0.24 });
+  vibrate([30, 40, 30, 40, 60]);
+}
+
 function showLanguageOverlay() {
   languageOverlay.classList.add("is-visible");
   languageOverlay.setAttribute("aria-hidden", "false");
@@ -766,6 +825,7 @@ function showWin() {
   winOverlay.classList.add("is-visible");
   winOverlay.setAttribute("aria-hidden", "false");
   startConfetti();
+  playSolved();
 }
 
 function hideWin() {
