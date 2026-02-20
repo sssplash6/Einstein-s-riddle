@@ -569,9 +569,17 @@ function handlePointerUp(event) {
 
   if (isValid) {
     animateDrop(dragging.ghost, cell);
-    placeItem(dragging.item, cell);
+    const wasCorrect = placeItem(dragging.item, cell);
     hintKey("hintNice", false);
-    playSuccess();
+    if (autoToggle.checked) {
+      if (wasCorrect) {
+        playSuccess();
+      } else {
+        playError();
+      }
+    } else {
+      playSuccess();
+    }
   } else {
     dragging.ghost.remove();
     hintKey(cell ? "hintWrongRow" : "hintDropOnGrid", true);
@@ -672,6 +680,8 @@ function placeItem(item, cell) {
   if (autoToggle.checked) {
     updateChecks();
   }
+
+  return SOLUTION[row][col] === item.id;
 }
 
 function clearCell(cell) {
