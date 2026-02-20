@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-api-base="">
     <div class="language-overlay is-visible" id="languageOverlay" aria-hidden="false">
       <div class="language-card">
         <p class="language-eyebrow" id="languageSubtitle">Choose a language to begin.</p>
@@ -148,7 +148,33 @@
         <p class="win-eyebrow" id="winEyebrow"></p>
         <h2 id="winTitle"></h2>
         <p id="winBody"></p>
-        <button class="btn" id="winClose"></button>
+        <div class="score-form" id="scoreForm">
+          <label for="playerName" id="nameLabel"></label>
+          <input
+            id="playerName"
+            type="text"
+            autocomplete="name"
+            maxlength="24"
+          />
+          <button class="btn" id="submitScore"></button>
+          <p class="form-note" id="submitNote"></p>
+        </div>
+        <div class="win-actions">
+          <button class="btn" id="winClose"></button>
+          <button class="btn" id="statsBtn"></button>
+          <button class="btn" id="leaderboardBtn"></button>
+        </div>
+        <div class="stats-panel" id="statsPanel"></div>
+      </div>
+    </div>
+
+    <div class="leaderboard-overlay" id="leaderboardOverlay" aria-hidden="true">
+      <div class="leaderboard-card">
+        <div class="leaderboard-header">
+          <h3 id="leaderboardTitle"></h3>
+          <button class="btn" id="leaderboardClose"></button>
+        </div>
+        <div class="leaderboard-body" id="leaderboardBody"></div>
       </div>
     </div>
 

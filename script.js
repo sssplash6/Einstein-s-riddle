@@ -161,6 +161,25 @@ const LANGUAGES = {
       paletteTitle: "Pieces",
       paletteSubtitle: "Drag from here into the sketched grid.",
       homeLabel: "Language",
+      nameLabel: "Your name for the leaderboard",
+      namePlaceholder: "Enter name",
+      nameError: "Please enter a name (2+ letters).",
+      submitScore: "Submit score",
+      submitSuccess: "Rank #{rank} • Top {percentile}%",
+      submitError: "Could not submit. Check connection.",
+      statsBtn: "Show Statistics",
+      leaderboardBtn: "Show Leaderboard",
+      statsMistakes: "Mistakes",
+      statsTime: "Time",
+      statsAvgMistakes: "Average mistakes",
+      statsAvgTime: "Average time",
+      statsPercentile: "Percentile",
+      statsNeedsSubmit: "Submit your name to see global stats.",
+      leaderboardTitle: "Leaderboard",
+      leaderboardClose: "Close",
+      leaderboardLoading: "Loading leaderboard...",
+      leaderboardEmpty: "No scores yet.",
+      leaderboardError: "Could not load leaderboard.",
       winEyebrow: "Solved",
       winTitle: "Einstein would approve.",
       winBody: "You placed every clue correctly.",
@@ -255,6 +274,25 @@ const LANGUAGES = {
       paletteTitle: "Bo'laklar",
       paletteSubtitle: "Bu yerdan olib, chizilgan jadvalga joylang.",
       homeLabel: "Til",
+      nameLabel: "Ismingiz (reyting uchun)",
+      namePlaceholder: "Ism kiriting",
+      nameError: "Iltimos, ism kiriting (kamida 2 harf).",
+      submitScore: "Natijani yuborish",
+      submitSuccess: "O'rin #{rank} • Yuqori {percentile}%",
+      submitError: "Yuborilmadi. Internetni tekshiring.",
+      statsBtn: "Statistika",
+      leaderboardBtn: "Reyting",
+      statsMistakes: "Xatolar",
+      statsTime: "Vaqt",
+      statsAvgMistakes: "O'rtacha xatolar",
+      statsAvgTime: "O'rtacha vaqt",
+      statsPercentile: "Foiz",
+      statsNeedsSubmit: "Global statistikani ko'rish uchun ism yuboring.",
+      leaderboardTitle: "Reyting jadvali",
+      leaderboardClose: "Yopish",
+      leaderboardLoading: "Reyting yuklanmoqda...",
+      leaderboardEmpty: "Hozircha natijalar yo'q.",
+      leaderboardError: "Reytingni yuklab bo'lmadi.",
       winEyebrow: "Yechildi",
       winTitle: "Einstein ma'qullaydi.",
       winBody: "Barcha ishoralar to'g'ri joylandi.",
@@ -349,6 +387,25 @@ const LANGUAGES = {
       paletteTitle: "Элементы",
       paletteSubtitle: "Перетащите отсюда в нарисованную сетку.",
       homeLabel: "Язык",
+      nameLabel: "Имя для рейтинга",
+      namePlaceholder: "Введите имя",
+      nameError: "Введите имя (минимум 2 буквы).",
+      submitScore: "Отправить результат",
+      submitSuccess: "Место #{rank} • Топ {percentile}%",
+      submitError: "Не удалось отправить.",
+      statsBtn: "Статистика",
+      leaderboardBtn: "Таблица лидеров",
+      statsMistakes: "Ошибки",
+      statsTime: "Время",
+      statsAvgMistakes: "Средние ошибки",
+      statsAvgTime: "Среднее время",
+      statsPercentile: "Процентиль",
+      statsNeedsSubmit: "Отправьте имя, чтобы увидеть общие данные.",
+      leaderboardTitle: "Таблица лидеров",
+      leaderboardClose: "Закрыть",
+      leaderboardLoading: "Загрузка...",
+      leaderboardEmpty: "Пока нет результатов.",
+      leaderboardError: "Не удалось загрузить таблицу.",
       winEyebrow: "Решено",
       winTitle: "Эйнштейн бы одобрил.",
       winBody: "Все подсказки расставлены верно.",
@@ -359,7 +416,11 @@ const LANGUAGES = {
   },
 };
 
+const API_BASE = (document.body.dataset.apiBase || window.STATS_API_BASE || "")
+  .trim()
+  .replace(/\/$/, "");
 const TOTAL_CELLS = 25;
+
 
 const state = {
   color: {},
@@ -376,10 +437,21 @@ const autoToggle = document.getElementById("autoToggle");
 const resetBtn = document.getElementById("resetBtn");
 const hintEl = document.getElementById("hint");
 const homeBtn = document.getElementById("homeBtn");
+const scoreForm = document.getElementById("scoreForm");
+const playerNameInput = document.getElementById("playerName");
+const submitScoreBtn = document.getElementById("submitScore");
+const submitNote = document.getElementById("submitNote");
+const statsBtn = document.getElementById("statsBtn");
+const statsPanel = document.getElementById("statsPanel");
+const leaderboardBtn = document.getElementById("leaderboardBtn");
 const winOverlay = document.getElementById("winOverlay");
 const winClose = document.getElementById("winClose");
 const confettiCanvas = document.getElementById("confetti");
 const confettiCtx = confettiCanvas.getContext("2d");
+const leaderboardOverlay = document.getElementById("leaderboardOverlay");
+const leaderboardBody = document.getElementById("leaderboardBody");
+const leaderboardClose = document.getElementById("leaderboardClose");
+const leaderboardTitle = document.getElementById("leaderboardTitle");
 const languageOverlay = document.getElementById("languageOverlay");
 const languageButtons = document.querySelectorAll(".lang-option");
 
@@ -397,6 +469,7 @@ const winTitle = document.getElementById("winTitle");
 const winBody = document.getElementById("winBody");
 const languageTitle = document.getElementById("languageTitle");
 const languageSubtitle = document.getElementById("languageSubtitle");
+const nameLabel = document.getElementById("nameLabel");
 
 let dragging = null;
 let hoverCell = null;
@@ -405,6 +478,12 @@ let confettiAnimationId = null;
 let confettiPieces = [];
 let currentLang = "en";
 let audioCtx = null;
+let sessionStart = 0;
+let sessionDurationMs = 0;
+let mistakesCount = 0;
+let sessionMistakesFinal = null;
+let lastSubmission = null;
+let hasSubmitted = false;
 
 function setText(el, text) {
   if (!el) return;
@@ -434,12 +513,22 @@ function applyLanguage(lang) {
   setText(paletteTitle, langData.ui.paletteTitle);
   setText(paletteSubtitle, langData.ui.paletteSubtitle);
   setText(homeBtn, langData.ui.homeLabel);
+  setText(nameLabel, langData.ui.nameLabel);
+  setText(submitScoreBtn, langData.ui.submitScore);
+  setText(statsBtn, langData.ui.statsBtn);
+  setText(leaderboardBtn, langData.ui.leaderboardBtn);
+  setText(leaderboardTitle, langData.ui.leaderboardTitle);
+  setText(leaderboardClose, langData.ui.leaderboardClose);
   setText(winEyebrow, langData.ui.winEyebrow);
   setText(winTitle, langData.ui.winTitle);
   setText(winBody, langData.ui.winBody);
   setText(winClose, langData.ui.winButton);
   setText(languageTitle, langData.ui.languageTitle);
   setText(languageSubtitle, langData.ui.languageSubtitle);
+
+  if (playerNameInput) {
+    playerNameInput.placeholder = langData.ui.namePlaceholder;
+  }
 
   document.querySelectorAll(".col-head").forEach((col, index) => {
     col.textContent = langData.columns[index];
@@ -578,6 +667,9 @@ function handlePointerUp(event) {
     animateDrop(dragging.ghost, cell);
     const wasCorrect = placeItem(dragging.item, cell);
     hintKey("hintNice", false);
+    if (!wasCorrect) {
+      recordMistake();
+    }
     if (autoToggle.checked) {
       if (wasCorrect) {
         playSuccess();
@@ -590,6 +682,9 @@ function handlePointerUp(event) {
   } else {
     dragging.ghost.remove();
     hintKey(cell ? "hintWrongRow" : "hintDropOnGrid", true);
+    if (cell) {
+      recordMistake();
+    }
     playError();
   }
 
@@ -768,6 +863,7 @@ function resetGrid(showResetHint = true) {
     clearCell(cell);
   });
   solvedShown = false;
+  startNewSession();
   hideWin();
   updateChecks();
   hintKey(showResetHint ? "hintReset" : "tipDefault", false);
@@ -779,6 +875,199 @@ function shuffleArray(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+function apiUrl(path) {
+  if (!API_BASE) return path;
+  return `${API_BASE}${path}`;
+}
+
+function startNewSession() {
+  sessionStart = performance.now();
+  sessionDurationMs = 0;
+  mistakesCount = 0;
+  sessionMistakesFinal = null;
+  lastSubmission = null;
+  hasSubmitted = false;
+  if (scoreForm) {
+    scoreForm.classList.remove("is-submitted");
+  }
+  if (playerNameInput) {
+    playerNameInput.value = "";
+  }
+  if (submitNote) {
+    submitNote.textContent = "";
+  }
+  if (statsPanel) {
+    statsPanel.classList.remove("is-visible");
+    statsPanel.innerHTML = "";
+  }
+}
+
+function getSessionDurationMs() {
+  if (sessionDurationMs) return sessionDurationMs;
+  if (!sessionStart) return 0;
+  return Math.max(0, performance.now() - sessionStart);
+}
+
+function getSessionMistakes() {
+  return sessionMistakesFinal === null ? mistakesCount : sessionMistakesFinal;
+}
+
+function formatDuration(ms) {
+  const totalSeconds = Math.round(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function recordMistake() {
+  mistakesCount += 1;
+}
+
+function renderStatsPanel() {
+  if (!statsPanel) return;
+  const durationMs = getSessionDurationMs();
+  const lines = [
+    { label: t("statsMistakes"), value: getSessionMistakes() },
+    { label: t("statsTime"), value: formatDuration(durationMs) },
+  ];
+
+  if (lastSubmission) {
+    lines.push({
+      label: t("statsAvgMistakes"),
+      value: Number(lastSubmission.avgMistakes).toFixed(1),
+    });
+    lines.push({
+      label: t("statsAvgTime"),
+      value: formatDuration(Number(lastSubmission.avgDurationMs)),
+    });
+    lines.push({
+      label: t("statsPercentile"),
+      value: `${Number(lastSubmission.percentile).toFixed(1)}%`,
+    });
+  }
+
+  const statsHtml = lines
+    .map(
+      (line) =>
+        `<div class=\"stat-line\"><span>${line.label}</span><strong>${line.value}</strong></div>`
+    )
+    .join("");
+
+  statsPanel.innerHTML = statsHtml;
+
+  if (!lastSubmission) {
+    statsPanel.innerHTML += `<div class=\"form-note\">${t(
+      "statsNeedsSubmit"
+    )}</div>`;
+  }
+}
+
+async function submitScore() {
+  if (hasSubmitted) return;
+  const name = playerNameInput?.value.trim();
+  if (!name || name.length < 2) {
+    if (submitNote) {
+      submitNote.textContent = t("nameError");
+    }
+    return;
+  }
+
+  if (!sessionDurationMs) {
+    sessionDurationMs = getSessionDurationMs();
+  }
+  if (sessionMistakesFinal === null) {
+    sessionMistakesFinal = mistakesCount;
+  }
+
+  const payload = {
+    name,
+    mistakes: getSessionMistakes(),
+    durationMs: getSessionDurationMs(),
+    language: currentLang,
+  };
+
+  try {
+    const response = await fetch(apiUrl("/api/submit"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("submit failed");
+    }
+
+    const data = await response.json();
+    lastSubmission = data;
+    hasSubmitted = true;
+    if (scoreForm) {
+      scoreForm.classList.add("is-submitted");
+    }
+    if (submitNote) {
+      submitNote.textContent = t("submitSuccess", {
+        rank: data.rank,
+        percentile: Number(data.percentile).toFixed(1),
+      });
+    }
+    renderStatsPanel();
+  } catch (error) {
+    if (submitNote) {
+      submitNote.textContent = t("submitError");
+    }
+  }
+}
+
+async function openLeaderboard() {
+  if (!leaderboardOverlay || !leaderboardBody) return;
+  leaderboardOverlay.classList.add("is-visible");
+  leaderboardOverlay.setAttribute("aria-hidden", "false");
+  leaderboardBody.innerHTML = `<div class=\"form-note\">${t(
+    "leaderboardLoading"
+  )}</div>`;
+
+  try {
+    const response = await fetch(apiUrl("/api/leaderboard?limit=20"));
+    if (!response.ok) throw new Error("leaderboard failed");
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      leaderboardBody.innerHTML = `<div class=\"form-note\">${t(
+        "leaderboardEmpty"
+      )}</div>`;
+      return;
+    }
+
+    const mistakesLabel = t("statsMistakes");
+    const timeLabel = t("statsTime");
+    leaderboardBody.innerHTML = data
+      .map((row) => {
+        const scorePoints = Math.round(Number(row.score) / 1000);
+        return `
+        <div class=\"leader-row\">
+          <div>#${row.rank}</div>
+          <div>
+            <div>${row.name}</div>
+            <div class=\"leader-meta\">${mistakesLabel}: ${row.mistakes} · ${timeLabel}: ${formatDuration(
+          Number(row.durationMs)
+        )}</div>
+          </div>
+          <div class=\"leader-score\">${scorePoints} pts</div>
+        </div>`;
+      })
+      .join(\"\");
+  } catch (error) {
+    leaderboardBody.innerHTML = `<div class=\"form-note\">${t(
+      "leaderboardError"
+    )}</div>`;
+  }
+}
+
+function closeLeaderboard() {
+  if (!leaderboardOverlay) return;
+  leaderboardOverlay.classList.remove("is-visible");
+  leaderboardOverlay.setAttribute("aria-hidden", "true");
 }
 
 function ensureAudioContext() {
@@ -851,10 +1140,19 @@ function hideLanguageOverlay() {
 function showWin() {
   if (solvedShown) return;
   solvedShown = true;
+  if (!sessionDurationMs) {
+    sessionDurationMs = getSessionDurationMs();
+  }
+  if (sessionMistakesFinal === null) {
+    sessionMistakesFinal = mistakesCount;
+  }
   winOverlay.classList.add("is-visible");
   winOverlay.setAttribute("aria-hidden", "false");
   startConfetti();
   playSolved();
+  if (playerNameInput) {
+    playerNameInput.focus();
+  }
 }
 
 function hideWin() {
@@ -957,11 +1255,31 @@ function init() {
   resetBtn.addEventListener("click", () => resetGrid(true));
   homeBtn.addEventListener("click", () => {
     hideWin();
+    closeLeaderboard();
     showLanguageOverlay();
   });
   winClose.addEventListener("click", hideWin);
   winOverlay.addEventListener("click", (event) => {
     if (event.target === winOverlay) hideWin();
+  });
+
+  submitScoreBtn.addEventListener("click", submitScore);
+  playerNameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      submitScore();
+    }
+  });
+
+  statsBtn.addEventListener("click", () => {
+    renderStatsPanel();
+    statsPanel.classList.toggle("is-visible");
+  });
+
+  leaderboardBtn.addEventListener("click", openLeaderboard);
+  leaderboardClose.addEventListener("click", closeLeaderboard);
+  leaderboardOverlay.addEventListener("click", (event) => {
+    if (event.target === leaderboardOverlay) closeLeaderboard();
   });
 
   languageButtons.forEach((button) => {

@@ -1,0 +1,9 @@
+{
+  "name": "einstein-riddle-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "pg": "^8.11.5"
+  }
+}

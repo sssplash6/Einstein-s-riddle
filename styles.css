@@ -582,7 +582,142 @@ body {
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.2);
   text-align: center;
-  max-width: 360px;
+  max-width: 420px;
+  width: min(92vw, 420px);
+}
+
+.score-form {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+
+.score-form label {
+  font-size: 0.9rem;
+}
+
+.score-form input {
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-family: "Special Elite", "Courier New", serif;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.score-form.is-submitted input,
+.score-form.is-submitted button {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.form-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.win-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 8px 0 6px;
+}
+
+.stats-panel {
+  display: none;
+  border: 2px dashed var(--ink-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.stats-panel.is-visible {
+  display: block;
+}
+
+.stats-panel .stat-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.leaderboard-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(246, 241, 230, 0.92);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 25;
+}
+
+.leaderboard-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.leaderboard-card {
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.2);
+  width: min(92vw, 520px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leaderboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.leaderboard-header h3 {
+  margin: 0;
+  font-family: "Special Elite", "Courier New", serif;
+  font-size: 1.2rem;
+}
+
+.leaderboard-body {
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.leader-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border: 2px solid var(--ink-soft);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.leader-score {
+  text-align: right;
+  font-family: "Special Elite", "Courier New", serif;
+}
+
+.leader-meta {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
 }
 
 .win-card h2 {
