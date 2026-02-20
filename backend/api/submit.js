@@ -1,6 +1,31 @@
 const { query, ensureSchema } = require("./_db");
 
 const PENALTY_MS = Number(process.env.MISTAKE_PENALTY_MS || 60000);
+const DEBUG_ERRORS = process.env.DEBUG_ERRORS === "true";
+
+async function readJson(req) {
+  if (req.body) {
+    return typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  }
+  return new Promise((resolve, reject) => {
+    let data = "";
+    req.on("data", (chunk) => {
+      data += chunk;
+    });
+    req.on("end", () => {
+      if (!data) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(data));
+      } catch (error) {
+        reject(error);
+      }
+    });
+    req.on("error", reject);
+  });
+}
 
 function setCors(res) {
   const origin = process.env.ALLOWED_ORIGIN || "*";
@@ -24,7 +49,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const body = await readJson(req);
     const name = String(body.name || "").trim().slice(0, 24);
     const mistakes = Number(body.mistakes);
     const durationMs = Number(body.durationMs);
@@ -84,6 +109,12 @@ module.exports = async function handler(req, res) {
     );
   } catch (error) {
     res.statusCode = 500;
-    res.end("Server error");
+    res.setHeader("Content-Type", "application/json");
+    res.end(
+      JSON.stringify({
+        error: "Server error",
+        detail: DEBUG_ERRORS ? error.message : undefined,
+      })
+    );
   }
 };

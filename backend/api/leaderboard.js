@@ -45,6 +45,12 @@ module.exports = async function handler(req, res) {
     res.end(JSON.stringify(result.rows));
   } catch (error) {
     res.statusCode = 500;
-    res.end("Server error");
+    res.setHeader("Content-Type", "application/json");
+    res.end(
+      JSON.stringify({
+        error: "Server error",
+        detail: process.env.DEBUG_ERRORS === "true" ? error.message : undefined,
+      })
+    );
   }
 };
