@@ -951,14 +951,14 @@ function renderStatsPanel() {
   const statsHtml = lines
     .map(
       (line) =>
-        `<div class=\"stat-line\"><span>${line.label}</span><strong>${line.value}</strong></div>`
+        `<div class="stat-line"><span>${line.label}</span><strong>${line.value}</strong></div>`
     )
     .join("");
 
   statsPanel.innerHTML = statsHtml;
 
   if (!lastSubmission) {
-    statsPanel.innerHTML += `<div class=\"form-note\">${t(
+    statsPanel.innerHTML += `<div class="form-note">${t(
       "statsNeedsSubmit"
     )}</div>`;
   }
@@ -1023,9 +1023,9 @@ async function openLeaderboard() {
   if (!leaderboardOverlay || !leaderboardBody) return;
   leaderboardOverlay.classList.add("is-visible");
   leaderboardOverlay.setAttribute("aria-hidden", "false");
-  leaderboardBody.innerHTML = `<div class=\"form-note\">${t(
-    "leaderboardLoading"
-  )}</div>`;
+    leaderboardBody.innerHTML = `<div class="form-note">${t(
+      "leaderboardLoading"
+    )}</div>`;
 
   try {
     const response = await fetch(apiUrl("/api/leaderboard?limit=20"));
@@ -1033,7 +1033,7 @@ async function openLeaderboard() {
     const data = await response.json();
 
     if (!Array.isArray(data) || data.length === 0) {
-      leaderboardBody.innerHTML = `<div class=\"form-note\">${t(
+      leaderboardBody.innerHTML = `<div class="form-note">${t(
         "leaderboardEmpty"
       )}</div>`;
       return;
@@ -1045,20 +1045,20 @@ async function openLeaderboard() {
       .map((row) => {
         const scorePoints = Math.round(Number(row.score) / 1000);
         return `
-        <div class=\"leader-row\">
+        <div class="leader-row">
           <div>#${row.rank}</div>
           <div>
             <div>${row.name}</div>
-            <div class=\"leader-meta\">${mistakesLabel}: ${row.mistakes} · ${timeLabel}: ${formatDuration(
+            <div class="leader-meta">${mistakesLabel}: ${row.mistakes} · ${timeLabel}: ${formatDuration(
           Number(row.durationMs)
         )}</div>
           </div>
-          <div class=\"leader-score\">${scorePoints} pts</div>
+          <div class="leader-score">${scorePoints} pts</div>
         </div>`;
       })
-      .join(\"\");
+      .join("");
   } catch (error) {
-    leaderboardBody.innerHTML = `<div class=\"form-note\">${t(
+    leaderboardBody.innerHTML = `<div class="form-note">${t(
       "leaderboardError"
     )}</div>`;
   }
