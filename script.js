@@ -440,6 +440,7 @@ const autoToggle = document.getElementById("autoToggle");
 const resetBtn = document.getElementById("resetBtn");
 const hintEl = document.getElementById("hint");
 const homeBtn = document.getElementById("homeBtn");
+const leaderboardMainBtn = document.getElementById("leaderboardMainBtn");
 const scoreForm = document.getElementById("scoreForm");
 const playerNameInput = document.getElementById("playerName");
 const submitScoreBtn = document.getElementById("submitScore");
@@ -518,6 +519,7 @@ function applyLanguage(lang) {
   setText(paletteTitle, langData.ui.paletteTitle);
   setText(paletteSubtitle, langData.ui.paletteSubtitle);
   setText(homeBtn, langData.ui.homeLabel);
+  setText(leaderboardMainBtn, langData.ui.leaderboardBtn);
   setText(nameLabel, langData.ui.nameLabel);
   setText(submitScoreBtn, langData.ui.submitScore);
   setText(statsBtn, langData.ui.statsBtn);
@@ -1290,6 +1292,7 @@ function init() {
     closeLeaderboard();
     showLanguageOverlay();
   });
+  leaderboardMainBtn.addEventListener("click", openLeaderboard);
   winClose.addEventListener("click", hideWin);
   winOverlay.addEventListener("click", (event) => {
     if (event.target === winOverlay) hideWin();

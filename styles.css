@@ -33,6 +33,10 @@ body {
   overflow: hidden;
 }
 
+.language-locked .corner-actions {
+  display: none;
+}
+
 .page {
   max-width: 1200px;
   margin: 0 auto;
@@ -490,11 +494,17 @@ body {
   box-shadow: 4px 5px 0 rgba(0, 0, 0, 0.18);
 }
 
-.home-btn {
+.corner-actions {
   position: fixed;
   top: 18px;
   right: 18px;
   z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-btn {
   border: 2px solid var(--ink);
   border-radius: 999px;
   padding: 6px 14px;
@@ -503,6 +513,10 @@ body {
   cursor: pointer;
   box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.18);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-btn.secondary {
+  font-size: 0.85rem;
 }
 
 .home-btn:hover {
@@ -799,9 +813,13 @@ body {
     flex: 0 0 60px;
   }
 
-  .home-btn {
+  .corner-actions {
     top: 12px;
     right: 12px;
+  }
+
+  .home-btn {
+    font-size: 0.8rem;
   }
 
   .grid-scroll {
